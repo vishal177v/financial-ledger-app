@@ -119,6 +119,23 @@ export async function renderCustomerPage(customerId) {
     }
   };
 
+  document.getElementById('delete-customer-btn').onclick = async () => {
+    const confirm = await showConfirmModal('Delete Customer', 'This will permanently delete this customer and ALL their transactions. This action cannot be undone. Are you absolutely sure?');
+    if (confirm) {
+      // 1. Delete all transactions for this customer
+      const rawTxs = await txDb.getByCustomer(_customerId);
+      for (const tx of rawTxs) {
+        await txDb.delete(tx.id);
+      }
+      
+      // 2. Delete the customer
+      await customers.delete(_customerId);
+      
+      showToast('Customer and all transactions deleted', 'success');
+      window.location.hash = '#dashboard';
+    }
+  };
+
   const handleAddTx = async (type) => {
     const newTx = await showTransactionModal(null, customerId, type);
     if (newTx) {
