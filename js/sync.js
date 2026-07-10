@@ -49,8 +49,8 @@ export async function restoreFromCloud() {
 
   const data = await res.json();
   if (data && data.customers && data.transactions) {
-    const { importAll } = await import('./db.js');
-    await importAll(data);
+    const { backup } = await import('./db.js');
+    await backup.importAll(data);
     localStorage.setItem('last_cloud_sync', Date.now().toString());
     return true;
   }

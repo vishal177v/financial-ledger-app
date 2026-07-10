@@ -195,7 +195,7 @@ async function refreshLedger() {
       bbLabel.textContent = 'You will give'; // Positive balance = we got money from them, so we give them back.
       bbEl.className = 'kb-hero-value kb-red';
     }
-    const principal = _liveRow ? _liveRow.principalBalance : _enriched[_enriched.length - 1].principalBalance;
+    const principal = _liveRow ? _liveRow.principalBalance : (_enriched.length > 0 ? _enriched[_enriched.length - 1].principalBalance : 0);
     document.getElementById('bb-principal').textContent = 'Principal: ' + formatCurrency(Math.abs(principal));
   }
 
