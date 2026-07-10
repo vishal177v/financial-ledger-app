@@ -56,12 +56,15 @@ async function navigate(hash) {
 
 // ─────────────────────────── SERVICE WORKER ─────────────────────────────────
 
-async function registerSW() {
+async function unregisterSW() {
   if ('serviceWorker' in navigator) {
     try {
-      await navigator.serviceWorker.register('/sw.js');
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (let registration of registrations) {
+        await registration.unregister();
+      }
     } catch (err) {
-      console.info('SW not registered (file:// or dev mode):', err.message);
+      console.info('Failed to unregister SW:', err.message);
     }
   }
 }
@@ -100,8 +103,8 @@ function initNav() {
 async function boot() {
   const startApp = async () => {
     try {
-      // Register service worker (non-blocking)
-      registerSW();
+      // Unregister service workers to disable PWA offline cache
+      unregisterSW();
 
       // Reveal UI
       document.getElementById('loading-screen')?.classList.add('fade-out');
