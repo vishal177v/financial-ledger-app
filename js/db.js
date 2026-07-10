@@ -122,6 +122,21 @@ export const customers = {
 
 export const transactions = {
   /** @returns {Promise<Transaction[]>} */
+  getAll() {
+    return openDB().then(
+      (db) =>
+        new Promise((resolve, reject) => {
+          const req = db
+            .transaction('transactions', 'readonly')
+            .objectStore('transactions')
+            .getAll();
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        })
+    );
+  },
+
+  /** @returns {Promise<Transaction[]>} */
   getByCustomer(customerId) {
     return openDB().then(
       (db) =>
