@@ -7,6 +7,8 @@ import { renderCustomerPage } from './pages/customer.js';
 import { renderSettings }     from './pages/settings.js';
 import { showCustomerModal }  from './components/modal.js';
 import { showToast }          from './components/toast.js';
+import { isAuthenticated, showLoginScreen } from './components/auth.js';
+import { checkAndAutoSync }   from './sync.js';
 import { customers }          from './db.js';
 import { generateId, todayStr } from './utils/format.js';
 
@@ -96,33 +98,45 @@ function initNav() {
 // ─────────────────────────── BOOT ───────────────────────────────────────────
 
 async function boot() {
-  try {
-    // Register service worker (non-blocking)
-    registerSW();
+  const startApp = async () => {
+    try {
+      // Register service worker (non-blocking)
+      registerSW();
 
-    // Reveal UI
-    document.getElementById('loading-screen')?.classList.add('fade-out');
-    setTimeout(() => {
-      document.getElementById('loading-screen')?.remove();
-    }, 400);
-    document.getElementById('bottom-nav')?.classList.remove('hidden');
+      // Reveal UI
+      document.getElementById('loading-screen')?.classList.add('fade-out');
+      setTimeout(() => {
+        document.getElementById('loading-screen')?.remove();
+      }, 400);
+      document.getElementById('bottom-nav')?.classList.remove('hidden');
 
-    // Wire navigation
-    initNav();
+      // Wire navigation
+      initNav();
 
-    // Navigate to current hash (or default dashboard)
-    await navigate(window.location.hash);
+      // Navigate to current hash (or default dashboard)
+      await navigate(window.location.hash);
 
-  } catch (err) {
-    console.error('Boot error:', err);
-    document.getElementById('loading-screen').innerHTML = `
-      <div class="loading-logo">
-        <div style="font-size:2rem">⚠</div>
-        <h1>Something went wrong</h1>
-        <p>${err.message}</p>
-        <button onclick="location.reload()" style="margin-top:1rem;padding:.6rem 1.4rem;border-radius:8px;background:#fff;color:#000;border:none;cursor:pointer;font-weight:600;font-family:inherit">Reload App</button>
-      </div>
-    `;
+      // Trigger background auto-sync
+      checkAndAutoSync();
+
+    } catch (err) {
+      console.error('Boot error:', err);
+      document.getElementById('loading-screen').innerHTML = `
+        <div class="loading-logo">
+          <div style="font-size:2rem">⚠</div>
+          <h1>Something went wrong</h1>
+          <p>${err.message}</p>
+          <button onclick="location.reload()" style="margin-top:1rem;padding:.6rem 1.4rem;border-radius:8px;background:#fff;color:#000;border:none;cursor:pointer;font-weight:600;font-family:inherit">Reload App</button>
+        </div>
+      `;
+    }
+  };
+
+  if (isAuthenticated()) {
+    startApp();
+  } else {
+    // Hide standard loading if auth screen is going to overlay it, but auth screen is opaque anyway.
+    showLoginScreen(startApp);
   }
 }
 

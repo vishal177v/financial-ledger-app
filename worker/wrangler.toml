@@ -1,0 +1,7 @@
+name = "finance-ledger-api"
+main = "index.js"
+compatibility_date = "2024-07-09"
+
+[[kv_namespaces]]
+binding = "LEDGER_BACKUPS"
+id = "aabd5fad0883493cbd6bf94559d13803"

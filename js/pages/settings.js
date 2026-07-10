@@ -4,6 +4,7 @@
 
 import { customers } from '../db.js';
 import { exportBackup, importBackup, openGoogleDrive } from '../utils/backup.js';
+import { backupToCloud, restoreFromCloud } from '../sync.js';
 import { showToast } from '../components/toast.js';
 import { showConfirmModal } from '../components/modal.js';
 
@@ -35,6 +36,33 @@ export async function renderSettings() {
       </header>
 
       <main class="page-main settings-main">
+      
+        <!-- Cloud Sync -->
+        <section class="settings-section">
+          <h2 class="settings-section-title">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px; margin-bottom: 2px;"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg> 
+            Cloud Sync
+          </h2>
+          <div class="settings-card">
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <div class="settings-item-title">Backup to Cloud</div>
+                <div class="settings-item-desc">Last synced: <span id="last-sync-time">Never</span></div>
+              </div>
+              <button class="btn btn-primary btn-sm" id="cloud-backup-btn">Backup Now</button>
+            </div>
+            <div class="settings-divider"></div>
+            <div class="settings-item">
+              <div class="settings-item-info">
+                <div class="settings-item-title">Restore from Cloud</div>
+                <div class="settings-item-desc">
+                  <span class="badge-warning">⚠ Replaces ALL existing data</span>
+                </div>
+              </div>
+              <button class="btn btn-ghost btn-sm" id="cloud-restore-btn">Restore</button>
+            </div>
+          </div>
+        </section>
 
         <!-- Backup -->
         <section class="settings-section">
@@ -175,6 +203,40 @@ export async function renderSettings() {
       window.location.hash = '#dashboard';
     } catch (err) {
       showToast('Failed: ' + err.message, 'error');
+    }
+  };
+  
+  // Update last sync time on render
+  const lsRaw = localStorage.getItem('last_cloud_sync');
+  if (lsRaw) {
+    document.getElementById('last-sync-time').textContent = new Date(parseInt(lsRaw, 10)).toLocaleString();
+  }
+
+  document.getElementById('cloud-backup-btn').onclick = async () => {
+    try {
+      showToast('Backing up to cloud...', 'info');
+      await backupToCloud();
+      document.getElementById('last-sync-time').textContent = new Date().toLocaleString();
+      showToast('Cloud backup successful!', 'success');
+    } catch (e) {
+      showToast(e.message, 'error');
+    }
+  };
+
+  document.getElementById('cloud-restore-btn').onclick = async () => {
+    const confirm = await showConfirmModal('Restore from Cloud', 'Are you sure? This will wipe your current local data and replace it with your cloud backup.');
+    if (!confirm) return;
+    try {
+      showToast('Restoring from cloud...', 'info');
+      const ok = await restoreFromCloud();
+      if (ok) {
+        showToast('Restored successfully! Reloading...', 'success');
+        setTimeout(() => location.reload(), 1500);
+      } else {
+        showToast('No cloud backup found.', 'warning');
+      }
+    } catch (e) {
+      showToast(e.message, 'error');
     }
   };
 }
