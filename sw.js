@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finance-ledger-v1';
+const CACHE_NAME = 'finance-ledger-v2';
 const ASSETS = [
   '/',
   '/index.html',
@@ -8,8 +8,10 @@ const ASSETS = [
   '/js/db.js',
   '/js/engine.js',
   '/js/worker.js',
+  '/js/sync.js',
   '/js/utils/format.js',
   '/js/utils/backup.js',
+  '/js/components/auth.js',
   '/js/components/modal.js',
   '/js/components/toast.js',
   '/js/components/whatsapp.js',
